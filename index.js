@@ -1,36 +1,44 @@
+require("dotenv").config();
+
 const express = require('express');
-const mysql = require('mysql');
-
-// Configurando servidor Express
+const db = require('./db');
 const app = express();
-app.use(express.json()); // para usar JSON nas requisições
+const port = process.env.PORT;
 
-// Configurando conexão com o MySQL
-const connection = mysql.createConnection({
-  host: 'srv725.hstgr.io', // altere para o host da Hostinger
-  user: 'u601978901_salvador', // altere para o usuário do MySQL
-  password: 'Bidu1932', // altere para a senha do MySQL
-  database: 'u601978901_psr', // altere para o nome do banco de dados
+app.use(express.json());
+ 
+app.get('/', (req, res) => res.json({ message: 'Funcionando!' }));
+
+app.get('/users', async (req, res) => {
+  const results = await db.selectCustomers();
+  res.json(results);
+})
+
+app.get('/users/:id', async (req, res) => {
+  const results = await db.selectCustomer(req.params.id);
+  res.json(results);
+}) 
+
+app.get('/users/:id', async (req, res) => {
+  const results = await db.selectCustomer(req.params.id);
+  res.json(results);
+})
+
+app.post('/users', async (req, res) => {
+  await db.insertCustomer(req.body);
+  res.sendStatus(201);
 });
 
-// Rota para GET /users
-app.get('/users', (req, res) => {
-  connection.query('SELECT * FROM users', (err, results) => {
-    if (err) throw err;
-    res.send(results);
-  });
-});
+app.patch('/users/:id', async (req, res) => {
+  await db.updateCustomer(req.params.id, req.body);
+  res.sendStatus(200);
+})
 
-// Rota para POST /users
-app.post('/users', (req, res) => {
-  const { name, email } = req.body;
-  connection.query('INSERT INTO users (name, email) VALUES (?, ?)', [name, email], (err, results) => {
-    if (err) throw err;
-    res.send({ message: 'Usuário criado com sucesso!' });
-  });
-});
+app.delete('/users/:id', async (req, res) => {
+    await db.deleteCustomer(req.params.id);
+    res.sendStatus(204);
+})
 
-// Iniciar servidor
-app.listen(3000, () => {
-  console.log('Servidor em execução na porta 3000');
-});
+//inicia o servidor
+app.listen(port);
+console.log('API funcionando!');
